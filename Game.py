@@ -1,6 +1,5 @@
-import pygame, random
-
 import os
+import pygame
 import sys
 
 pygame.init()
@@ -31,6 +30,17 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.y = pos[1]
         self.pos = (self.rect.x, self.rect.y)
         screen.blit(self.image, (pos[0], pos[1]))
+        self.const = 0
+        self.d = 1
+
+    def update(self):
+        if self.const < width // 10:
+            self.rect = self.rect.move(10 * self.d, 0)
+            self.const += 1
+        else:
+            self.rect = self.rect.move(0, 10)
+            self.const = 0
+            self.d = -self.d
 
 
 class AllyShip(pygame.sprite.Sprite):
@@ -66,7 +76,7 @@ class Bullet(pygame.sprite.Sprite):
         # self.minus=10
 
     def update(self):
-        if True or not pygame.sprite.collide_mask(self, Enemy):
+        if True or not pygame.sprite.collide_mask(self, enemy):
             self.rect = self.rect.move(0, -10)
 
 
@@ -84,12 +94,13 @@ class Rocket(pygame.sprite.Sprite):
         # self.minus=10
 
     def update(self):
-        if True or not pygame.sprite.collide_mask(self, Enemy):
+        if True or not pygame.sprite.collide_mask(self, Enemy()):
             self.rect = self.rect.move(0, -18)
 
 
 all_sprites = pygame.sprite.Group()
-enemy = Enemy((width // 2, height // 2))
+for i in range(20):
+    enemy = Enemy((150 * i, 0))
 ship = AllyShip((100, 100))
 running = True
 moving = False
@@ -105,22 +116,22 @@ while running:
             Bullet(ship.pos)
         if event.type == pygame.KEYDOWN:
             moving = True
-            if event.key == pygame.K_LEFT:
+            if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                 x -= 5
-            if event.key == pygame.K_RIGHT:
+            if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                 x += 5
-            if event.key == pygame.K_UP:
+            if event.key == pygame.K_UP or event.key == pygame.K_w:
                 y -= 5
-            if event.key == pygame.K_DOWN:
+            if event.key == pygame.K_DOWN or event.key == pygame.K_s:
                 y += 5
         if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT:
+            if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                 x += 5
-            if event.key == pygame.K_RIGHT:
+            if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                 x -= 5
-            if event.key == pygame.K_UP:
+            if event.key == pygame.K_UP or event.key == pygame.K_w:
                 y += 5
-            if event.key == pygame.K_DOWN:
+            if event.key == pygame.K_DOWN or event.key == pygame.K_s:
                 y -= 5
     if moving:
         ship.move(x, y)
@@ -135,4 +146,4 @@ while running:
         else:
             Rocket((ship.pos[0] + 35, ship.pos[1] + 45))
         left_rocket += 1
-    FPS.tick(60)
+    FPS.tick(20)
