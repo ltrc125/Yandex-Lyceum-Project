@@ -1,6 +1,7 @@
 import os
 import pygame
 import sys
+import random
 
 pygame.init()
 size = width, height = 1440, 820
@@ -196,12 +197,78 @@ class Rocket(pygame.sprite.Sprite):
             self.rect = self.rect.move(0, -18)
 
 
+class PowerUp(pygame.sprite.Sprite):
+    image = pygame.transform.scale(load_image("Power-Up.png"), (90, 90))
+
+    def __init__(self, pos):
+        super().__init__(powerups_sprites)
+        self.image = PowerUp.image
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect.x = pos[0]
+        self.rect.y = pos[1]
+        screen.blit(self.image, (pos[0], pos[1]))
+
+    def update(self):
+        self.rect = self.rect.move(0, 10)
+
+
+class PowerUp2(pygame.sprite.Sprite):
+    image = pygame.transform.scale(load_image("Power-Up2.png"), (90, 90))
+
+    def __init__(self, pos):
+        super().__init__(powerups_sprites)
+        self.image = PowerUp2.image
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect.x = pos[0]
+        self.rect.y = pos[1]
+        screen.blit(self.image, (pos[0], pos[1]))
+
+    def update(self):
+        self.rect = self.rect.move(0, 10)
+
+
+class PowerUp3(pygame.sprite.Sprite):
+    image = pygame.transform.scale(load_image("power-up3.png"), (90, 90))
+
+    def __init__(self, pos):
+        super().__init__(powerups_sprites)
+        self.image = PowerUp3.image
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect.x = pos[0]
+        self.rect.y = pos[1]
+        screen.blit(self.image, (pos[0], pos[1]))
+
+    def update(self):
+        self.rect = self.rect.move(0, 10)
+
+
+
+class PowerUp4(pygame.sprite.Sprite):
+    image = pygame.transform.scale(load_image("Power-Up4.png"), (90, 90))
+
+    def __init__(self, pos):
+        super().__init__(powerups_sprites)
+        self.image = PowerUp4.image
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect.x = pos[0]
+        self.rect.y = pos[1]
+        screen.blit(self.image, (pos[0], pos[1]))
+
+    def update(self):
+        self.rect = self.rect.move(0, 10)
+
+
 bg_image = pygame.transform.scale(load_image("space.png"), (width, height))
 for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
     all_sprites = pygame.sprite.Group()
     enemy_sprites = pygame.sprite.Group()
     player_sprites = pygame.sprite.Group()
     projectile_sprites = pygame.sprite.Group()
+    powerups_sprites = pygame.sprite.Group()
     enemy_amount = level * 5
     for n in range(level):
         for i in range(5):
@@ -227,7 +294,6 @@ for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
             break
         if not alive:
             game_over()
-        print(enemy_amount)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -265,9 +331,31 @@ for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
             for enemy1 in enemy_sprites:
                 if pygame.sprite.collide_mask(enemy1, projectile):
                     # print('collision')
+                    n = random.randint(1, 100)
+                    if n % 4 == 0 and n > 80:
+                        PowerUp(enemy1.pos)
+                        print('powerup1')
+                    elif n % 4 == 1 and n > 80:
+                        PowerUp2(enemy1.pos)
+                        print('powerup2')
+                    elif n % 4 == 2 and n > 80:
+                        PowerUp3(enemy1.pos)
+                        print('powerup3')
+                    if n % 4 == 3 and n > 80:
+                        PowerUp4(enemy1.pos)
+                        print('powerup4')
                     enemy1.kill()
                     projectile.kill()
                     enemy_amount -= 1
+
+        for powerup1 in powerups_sprites:
+            if powerup1.rect.y < -91:
+                powerup1.kill()
+        for powerup1 in powerups_sprites:
+            for player in player_sprites:
+                if pygame.sprite.collide_mask(powerup1, player):
+                    print('touched')
+                    powerup1.kill()
         for enemy1 in enemy_sprites:
             for player in player_sprites:
                 if pygame.sprite.collide_mask(enemy1, player):
@@ -281,7 +369,8 @@ for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
         enemy_sprites.draw(screen)
         projectile_sprites.draw(screen)
         player_sprites.draw(screen)
-        # all_sprites.update()
+        powerups_sprites.draw(screen)
+        powerups_sprites.update()
         enemy_sprites.update()
         player_sprites.update()
         projectile_sprites.update()
