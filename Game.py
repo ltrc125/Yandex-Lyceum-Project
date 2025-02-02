@@ -78,6 +78,13 @@ def game_over():
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 60)
     text_coord = 250
+    pygame.mixer.music.stop()
+    file = 'data\\loose.mp3'
+    pygame.init()
+    pygame.mixer.init()
+    pygame.mixer.music.load(file)
+    pygame.mixer.music.play()
+    pygame.event.wait()
     for line in text:
         string_rendered = font.render(line, 1, pygame.Color('red'))
         intro_rect = string_rendered.get_rect()
@@ -334,7 +341,7 @@ speed = 1.0
 lasers = 1
 mines = 0
 time_r = 100
-file = 'some.mp3'
+file = 'data\\music.mp3'
 pygame.init()
 pygame.mixer.init()
 pygame.mixer.music.load(file)
@@ -460,7 +467,7 @@ for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
                     if kills >= 3:
                         kills = 0
                         exp.kill()
-                        mine_presence = False
+                    enemy_amount -= 1
         for powerup1 in powerups_sprites:
             if powerup1.rect.y > height:
                 powerup1.kill()
@@ -520,4 +527,11 @@ for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
                 Rocket((ship.pos[0] + 35, ship.pos[1] + 45))
             left_rocket += 1
         FPS.tick(60)
+pygame.mixer.music.stop()
+file = 'data\\victory.mp3'
+pygame.init()
+pygame.mixer.init()
+pygame.mixer.music.load(file)
+pygame.mixer.music.play()
+pygame.event.wait()
 win_screen()
