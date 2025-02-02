@@ -276,14 +276,18 @@ class Mine(pygame.sprite.Sprite):
 
 
 class Explosion(pygame.sprite.Sprite):
-    def __init__(self, sheet, columns, rows, x, y):
+    def __init__(self, columns, rows, x, y):
         super().__init__(explosion_sprites)
         self.frames = []
-        self.cut_sheet(sheet, columns, rows)
+        self.cut_sheet(pygame.transform.scale(load_image("explosion.png"), (800, 400)), columns, rows)
         self.cur_frame = 0
         self.image = self.frames[self.cur_frame]
-        self.mask = pygame.mask.from_surface(self.frames[self.cur_frame])
-        self.rect = self.rect.move(x, y)
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect.x = x
+        self.rect.y = y
+        screen.blit(self.image, (x, y))
+        self.pos = (self.rect.x, self.rect.y)
 
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
@@ -297,16 +301,41 @@ class Explosion(pygame.sprite.Sprite):
     def update(self):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
-        self.mask = pygame.mask.from_surface(self.frames[self.cur_frame])
+        # self.mask = pygame.mask.from_surface(self.frames[self.cur_frame])
+
+
+# class Explosion(pygame.sprite.Sprite):
+#     def __init__(self, columns, rows, x, y):
+#         super().__init__(explosion_sprites)
+#         self.frames = []
+#         self.cut_sheet(pygame.transform.scale(load_image("explosion.png"), (800, 400)), columns, rows)
+#         self.cur_frame = 0
+#         self.image = self.frames[self.cur_frame]
+#         self.mask = pygame.mask.from_surface(self.frames[self.cur_frame])
+#         self.rect = self.rect.move(x, y)
+#
+#     def cut_sheet(self, sheet, columns, rows):
+#         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+#                                 sheet.get_height() // rows)
+#         for j in range(rows):
+#             for i in range(columns):
+#                 frame_location = (self.rect.w * i, self.rect.h * j)
+#                 self.frames.append(sheet.subsurface(pygame.Rect(
+#                     frame_location, self.rect.size)))
+#
+#     def update(self):
+#         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+#         self.image = self.frames[self.cur_frame]
+#         self.mask = pygame.mask.from_surface(self.frames[self.cur_frame])
 
 
 bg_image = pygame.transform.scale(load_image("space.png"), (width, height))
 speed = 1.0
 lasers = 1
 mines = 0
-time = 0
 time_r = 100
 for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
+    kills = 0
     all_sprites = pygame.sprite.Group()
     enemy_sprites = pygame.sprite.Group()
     player_sprites = pygame.sprite.Group()
@@ -389,7 +418,7 @@ for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
                 if event.key == pygame.K_DOWN or event.key == pygame.K_s:
                     y -= 5
         if moving:
-            ship.move(x*speed, y*speed)
+            ship.move(x * speed, y * speed)
         for bullet in projectile_sprites:
             if bullet.rect.y < -91:
                 bullet.kill()
@@ -411,16 +440,17 @@ for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
         for mine1 in mines_sprites:
             for enemy1 in enemy_sprites:
                 if pygame.sprite.collide_mask(enemy1, mine1):
-                    Explosion(pygame.transform.scale(load_image("explosion.png"), (100, 100)), 1, 1,
-                              mine1.pos[0], mine1.pos[1])
+                    Explosion(4, 2, mine1.pos[0], mine1.pos[1])
                     mine1.kill()
-                for exp in explosion_sprites:
-                    if pygame.sprite.collide_mask(enemy1, exp):
-                        enemy1.kill()
-                        enemy_amount -= 1
-                        time += 1
-                        print('exp, kill')
-                    if time % 4 == 3:
+                    enemy1.kill()
+        for exp in explosion_sprites:
+            for enemy1 in enemy_sprites:
+                if pygame.sprite.collide_mask(enemy1, exp):
+                    enemy1.kill()
+                    print(kills)
+                    kills += 1
+                    if kills >= 3:
+                        kills = 0
                         exp.kill()
         for powerup1 in powerups_sprites:
             if powerup1.rect.y > height:
