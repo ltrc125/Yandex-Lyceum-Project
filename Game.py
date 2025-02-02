@@ -334,6 +334,12 @@ speed = 1.0
 lasers = 1
 mines = 0
 time_r = 100
+file = 'some.mp3'
+pygame.init()
+pygame.mixer.init()
+pygame.mixer.music.load(file)
+pygame.mixer.music.play()
+pygame.event.wait()
 for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
     kills = 0
     all_sprites = pygame.sprite.Group()
