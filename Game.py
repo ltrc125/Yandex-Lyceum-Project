@@ -336,7 +336,6 @@ mines = 0
 time_r = 100
 for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
     kills = 0
-    mine_presence = False
     all_sprites = pygame.sprite.Group()
     enemy_sprites = pygame.sprite.Group()
     player_sprites = pygame.sprite.Group()
@@ -394,7 +393,7 @@ for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
                     n = list(ship.pos)
                     n[0] += 20
                     Bullet(tuple(n))
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3 and not mine_presence:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3 and mines > 0:
                 Mine(ship.pos)
                 mine_presence = True
             if event.type == pygame.KEYDOWN:
@@ -445,6 +444,7 @@ for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
                     Explosion(4, 2, mine1.pos[0], mine1.pos[1])
                     mine1.kill()
                     enemy1.kill()
+                    enemy_amount -= 1
         for exp in explosion_sprites:
             for enemy1 in enemy_sprites:
                 if pygame.sprite.collide_mask(enemy1, exp):
