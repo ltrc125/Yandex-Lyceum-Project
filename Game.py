@@ -217,7 +217,7 @@ class PowerUp2(pygame.sprite.Sprite):
     image = pygame.transform.scale(load_image("Power-Up2.png"), (90, 90))
 
     def __init__(self, pos):
-        super().__init__(powerups_sprites)
+        super().__init__(powerups2_sprites)
         self.image = PowerUp2.image
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
@@ -233,7 +233,7 @@ class PowerUp3(pygame.sprite.Sprite):
     image = pygame.transform.scale(load_image("power-up3.png"), (90, 90))
 
     def __init__(self, pos):
-        super().__init__(powerups_sprites)
+        super().__init__(powerups3_sprites)
         self.image = PowerUp3.image
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
@@ -250,7 +250,7 @@ class PowerUp4(pygame.sprite.Sprite):
     image = pygame.transform.scale(load_image("Power-Up4.png"), (90, 90))
 
     def __init__(self, pos):
-        super().__init__(powerups_sprites)
+        super().__init__(powerups4_sprites)
         self.image = PowerUp4.image
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
@@ -261,14 +261,62 @@ class PowerUp4(pygame.sprite.Sprite):
     def update(self):
         self.rect = self.rect.move(0, 10)
 
+class mine(pygame.sprite.Sprite):
+    image = pygame.transform.scale(load_image("mine.png"), (100, 100))
+
+    def __init__(self, pos):
+        super().__init__(mines_sprites)
+        self.image = mine.image
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect.x = pos[0]
+        self.rect.y = pos[1]
+        screen.blit(self.image, (pos[0], pos[1]))
+        self.pos = (self.rect.x, self.rect.y)
+
+
+class Explosion(pygame.sprite.Sprite):
+    def __init__(self, sheet, columns, rows, x, y):
+        super().__init__(explosion_sprites)
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
+        self.mask = pygame.mask.from_surface(self.frames[self.cur_frame])
+
 
 bg_image = pygame.transform.scale(load_image("space.png"), (width, height))
+speed = 5
+lasers = 1
+mines = 0
+time = 0
+time_r = 100
 for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
     all_sprites = pygame.sprite.Group()
     enemy_sprites = pygame.sprite.Group()
     player_sprites = pygame.sprite.Group()
     projectile_sprites = pygame.sprite.Group()
     powerups_sprites = pygame.sprite.Group()
+    powerups2_sprites = pygame.sprite.Group()
+    powerups3_sprites = pygame.sprite.Group()
+    powerups4_sprites = pygame.sprite.Group()
+    explosion_sprites = pygame.sprite.Group()
+    mines_sprites = pygame.sprite.Group()
     enemy_amount = level * 5
     for n in range(level):
         for i in range(5):
@@ -298,30 +346,48 @@ for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
             if event.type == pygame.QUIT:
                 running = False
                 terminate()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                Bullet(ship.pos)
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if lasers == 1:
+                    Bullet(ship.pos)
+                elif lasers == 2:
+                    n = list(ship.pos)
+                    n[0] -= 20
+                    Bullet(tuple(n))
+                    n = list(ship.pos)
+                    n[0] += 20
+                    Bullet(tuple(n))
+                else:
+                    Bullet(ship.pos)
+                    n = list(ship.pos)
+                    n[0] -= 20
+                    Bullet(tuple(n))
+                    n = list(ship.pos)
+                    n[0] += 20
+                    Bullet(tuple(n))
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
+                    mine(ship.pos)
             if event.type == pygame.KEYDOWN:
                 moving = True
                 if event.key == pygame.K_h:
                     enemy_amount = 0
                     print('reset')
                 if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                    x -= 5
+                    x -= speed
                 if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                    x += 5
+                    x += speed
                 if event.key == pygame.K_UP or event.key == pygame.K_w:
-                    y -= 5
+                    y -= speed
                 if event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                    y += 5
+                    y += speed
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                    x += 5
+                    x += speed
                 if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                    x -= 5
+                    x -= speed
                 if event.key == pygame.K_UP or event.key == pygame.K_w:
-                    y += 5
+                    y += speed
                 if event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                    y -= 5
+                    y -= speed
         if moving:
             ship.move(x, y)
         for bullet in projectile_sprites:
@@ -330,32 +396,55 @@ for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
         for projectile in projectile_sprites:
             for enemy1 in enemy_sprites:
                 if pygame.sprite.collide_mask(enemy1, projectile):
-                    # print('collision')
                     n = random.randint(1, 100)
                     if n % 4 == 0 and n > 80:
                         PowerUp(enemy1.pos)
-                        print('powerup1')
                     elif n % 4 == 1 and n > 80:
                         PowerUp2(enemy1.pos)
-                        print('powerup2')
                     elif n % 4 == 2 and n > 80:
                         PowerUp3(enemy1.pos)
-                        print('powerup3')
-                    if n % 4 == 3 and n > 80:
+                    elif n % 4 == 3 and n > 80:
                         PowerUp4(enemy1.pos)
-                        print('powerup4')
                     enemy1.kill()
                     projectile.kill()
                     enemy_amount -= 1
-
+        for mine1 in mines_sprites:
+            for enemy1 in enemy_sprites:
+                if pygame.sprite.collide_mask(enemy1, mine1):
+                    Explosion(pygame.transform.scale(load_image("explosion.png"), (800, 400)), 4, 2,
+                              mine1.pos[0], mine1.pos[1])
+                    mine1.kill()
+                for exp in explosion_sprites:
+                    if pygame.sprite.collide_mask(enemy1, exp):
+                        enemy1.kill()
+                        enemy_amount -= 1
+                        time += 1
+                        print('exp, kill')
+                    if time % 4 == 3:
+                        exp.kill()
         for powerup1 in powerups_sprites:
-            if powerup1.rect.y < -91:
+            if powerup1.rect.y > height:
                 powerup1.kill()
         for powerup1 in powerups_sprites:
             for player in player_sprites:
                 if pygame.sprite.collide_mask(powerup1, player):
-                    print('touched')
+                    speed += 1
                     powerup1.kill()
+        for powerup2 in powerups2_sprites:
+            for player in player_sprites:
+                if pygame.sprite.collide_mask(powerup2, player):
+                    lasers += 1
+                    powerup2.kill()
+        for powerup3 in powerups3_sprites:
+            for player in player_sprites:
+                if pygame.sprite.collide_mask(powerup3, player):
+                    mines += 1
+                    powerup3.kill()
+        for powerup4 in powerups4_sprites:
+            for player in player_sprites:
+                if pygame.sprite.collide_mask(powerup4, player):
+                    time_r -= 5
+                    powerup4.kill()
         for enemy1 in enemy_sprites:
             for player in player_sprites:
                 if pygame.sprite.collide_mask(enemy1, player):
@@ -371,12 +460,21 @@ for level in [level_1_enemy_amount, level_2_enemy_amount, level_3_enemy_amount]:
         player_sprites.draw(screen)
         powerups_sprites.draw(screen)
         powerups_sprites.update()
+        powerups2_sprites.draw(screen)
+        powerups2_sprites.update()
+        powerups3_sprites.draw(screen)
+        powerups3_sprites.update()
+        powerups4_sprites.draw(screen)
+        powerups4_sprites.update()
+        explosion_sprites.draw(screen)
+        explosion_sprites.update()
+        mines_sprites.draw(screen)
         enemy_sprites.update()
         player_sprites.update()
         projectile_sprites.update()
         pygame.display.flip()
         time_until_rocket += 1
-        if time_until_rocket % 100 == 0:
+        if time_until_rocket % time_r == 0:
             if left_rocket % 2 == 0:
                 Rocket((ship.pos[0] - 35, ship.pos[1] + 45))
             else:
