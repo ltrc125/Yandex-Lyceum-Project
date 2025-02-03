@@ -30,10 +30,13 @@ def terminate():
 
 def start_screen():
     # стартовый экран
-    title = ['Invasion Defender']
+    title = ['Space Invaders']
     instructions = ["Корабль передвигается на стрелочки и WASD",
                     "Стрельба лазером происходит на клавиши мыши",
                     "Ракеты будут выстреливаться из корабля каждые несколько секунд",
+                    "На правую кнопку мыши можно ставить мины",
+                    "После контакта с врагом они оставляют газ, который убивает 3 врагов",
+                    "Чтобы получить мины, собирайте улучшения!"
                     f'Вам придётся отбиваться от {level * 5} инопланетян!',
                     'Чтобы продолжить, нажмите Enter']
     fon = pygame.transform.scale(load_image('start.png'), (width, height))
@@ -56,7 +59,7 @@ def start_screen():
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
-        intro_rect.x = 300
+        intro_rect.x = 100
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
     while True:
