@@ -106,7 +106,8 @@ def win_screen():
     # экран победы и сохранение количества выстрелов в дб
     con = sqlite3.connect("high_score.sql")
     cur = con.cursor()
-    cur.execute("""UPDATE score SET shots=?""", (shots,))
+    if shots != 0:
+        cur.execute("""UPDATE score SET shots=?""", (shots,))
     con.commit()
     con.close()
     text = ["Вы отбили атаку инопланетян!",
